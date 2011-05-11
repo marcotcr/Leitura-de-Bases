@@ -1,0 +1,17 @@
+package request;
+message Open{
+  required string file_name = 1;
+  required int32 id = 2;
+}
+message OpenResponse {
+  required bool file_opened = 1;
+}
+message Read{
+  required int32 bytes = 1;
+  required int32 id = 2;
+}
+message ReadResponse {
+  required bool success = 1;
+  optional string response = 2;
+}
+
