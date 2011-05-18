@@ -2,6 +2,8 @@
 
 SLB::SLB(std::string port): port_(port), current_ID_(0) {
 }
+
+// This is currently accepting messages through the tcp protocol.
 void SLB::Run() {
   zmq::context_t context (1);
   zmq::socket_t socket (context, ZMQ_REP);
@@ -50,6 +52,8 @@ zmq::socket_t &socket) {
   if (!open_response.SerializeToString(&reply_string)) {
     std::cout << "Failure to serialize OpenResponse" << std::endl;
   }
+
+
   SLBMessage slb_response;
   slb_response.set_type(OPEN_RESPONSE);
   slb_response.set_data(reply_string);
