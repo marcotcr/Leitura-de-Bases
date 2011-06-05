@@ -1,0 +1,9 @@
+message SLBMessage {
+  // Possible types are:
+  // 1 - Open 
+  // 2 - OpenResponse
+  // 3 - Read
+  // 4 - ReadResponse
+  required int32 type = 1;
+  required string data = 2;
+}
