@@ -21,7 +21,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-// Implementation of counters.
+// Implementation of aggregators.
 
 #include "aggregator.h"
 
@@ -33,6 +33,8 @@ rendero::AggregatorValue AbstractAggregatorFunction::initial() {
   return initial_;
 }
 
+
+// AggregatorManager
 
 AggregatorManager::AggregatorManager(const AbstractAggregatorFunction*
 aggregator_function): aggregator_function_(aggregator_function) {
@@ -68,4 +70,41 @@ void Aggregator::Fill(std::string name, AggregatorManager* aggregator_manager) {
 }
 void Aggregator::Increment(const rendero::AggregatorValue& value) {
   aggregator_manager_->AddValueToAggregator(name_, value);
+}
+
+// Aggregator_aggregator
+
+AggregatorAggregator::AggregatorAggregator() {
+}
+
+void AggregatorAggregator::UpdateAggregators(const rendero::AggregatorPartials&
+aggregator_partials) {
+  if (reduce_functions_.count(aggregator_partials.name()) == 0) {
+    // FAIL SOMEHOW
+    return;
+  }
+  rendero::AggregatorValue temporary_aggregator;
+  for (int i = 0; i < aggregator_partials.values().aggregators_size(); ++i) {
+    const rendero::AggregatorValue& value =
+    aggregator_partials.values().aggregators(i);
+    reduce_functions_[aggregator_partials.name()]->reduce(
+    partials_[aggregator_partials.name()], value, &temporary_aggregator);
+    partials_[aggregator_partials.name()] = temporary_aggregator;
+  }
+}
+
+void AggregatorAggregator::OutputAndReset(rendero::AggregatorGroup*
+output_group) {
+  std::tr1::unordered_map<std::string, rendero::AggregatorValue>::iterator it;
+  rendero::AggregatorValue* temp_aggregator; 
+  for (it = partials_.begin(); it != partials_.end(); ++it) {
+    temp_aggregator = output_group->add_aggregators();
+    temp_aggregator->CopyFrom(it->second);
+    partials_[it->first].Clear();
+  }
+}
+
+void AggregatorAggregator::RegisterAggregationFunction(const std::string& name,
+AbstractAggregatorFunction* function) {
+  reduce_functions_[name] = function;
 }

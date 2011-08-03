@@ -78,3 +78,19 @@ class AggregatorManager {
   std::tr1::unordered_map<std::string, rendero::AggregatorValue> previous_values_;
 };
 
+class AggregatorAggregator {
+ public:
+  AggregatorAggregator();
+
+  void UpdateAggregators(const rendero::AggregatorPartials& aggregator_partials);
+
+  void OutputAndReset(rendero::AggregatorGroup* output_group);
+
+  void RegisterAggregationFunction(const std::string& name,
+  AbstractAggregatorFunction* function);
+
+ private:
+  std::tr1::unordered_map<std::string, rendero::AggregatorValue> partials_;
+  std::tr1::unordered_map<std::string, AbstractAggregatorFunction*>
+  reduce_functions_;
+};
