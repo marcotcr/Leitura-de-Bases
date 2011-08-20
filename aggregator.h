@@ -42,23 +42,26 @@ class AbstractAggregatorFunction {
   // This must be defined by whoever extends the class. The idea is to provide a
   // commutative and associative function that reduces two values.
   virtual void reduce(const rendero::AggregatorValue& partial,
-  const rendero::AggregatorValue& value, rendero::AggregatorValue* result)
-  const = 0;
+      const rendero::AggregatorValue& value, rendero::AggregatorValue* result)
+      const = 0;
 
 
+ // I need this in order to set the extension value properly.
+ protected:
+  rendero::AggregatorValue initial_;
  private:
   std::string name_;
-  rendero::AggregatorValue initial_;
 };
 
 class AggregatorManager;
 
 class Aggregator {
  public:
+  Aggregator();
   void Fill(const std::string& name, AggregatorManager* aggregator_manager);
   void Increment(const rendero::AggregatorValue& value);
+  rendero::AggregatorValue value();
  private:
-  Aggregator();
   std::string name_;
   AggregatorManager* aggregator_manager_;
 };
@@ -67,6 +70,7 @@ class AggregatorManager {
  public:
   AggregatorManager();
 
+  // Each aggregator must register his aggregation function.
   void RegisterAggregationFunction(const std::string& name,
   AbstractAggregatorFunction* function);
 
@@ -78,12 +82,16 @@ class AggregatorManager {
   // Whoever calls this has ownership of the aggregator instance.
   void GetAggregator(const std::string& name, Aggregator* aggregator);
 
+  void GetAggregatorValue(const std::string& name,
+      rendero::AggregatorValue* value);
+
   private:
   const AbstractAggregatorFunction* aggregator_function_;
 
   std::tr1::unordered_map<std::string, AbstractAggregatorFunction*>
   reduce_functions_;
   std::tr1::unordered_map<std::string, rendero::AggregatorValue> aggregators_;
+  // FIXME:This is not being used yet.
   std::tr1::unordered_map<std::string, rendero::AggregatorValue>
       previous_values_;
 };

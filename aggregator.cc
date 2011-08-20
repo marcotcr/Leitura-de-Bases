@@ -77,6 +77,19 @@ void AggregatorManager::GetAggregator(const std::string& name,
   aggregator->Fill(name, this);
 }
 
+void AggregatorManager::GetAggregatorValue(const std::string& name,
+    rendero::AggregatorValue* value) {
+  if (aggregators_.count(name) <=0) {
+    value = NULL;
+  }
+  else {
+    (*value) = aggregators_[name];
+  }
+}
+
+Aggregator::Aggregator() {
+}
+
 void Aggregator::Fill(const std::string& name,
     AggregatorManager* aggregator_manager) {
   name_ = name;
@@ -84,6 +97,13 @@ void Aggregator::Fill(const std::string& name,
 }
 void Aggregator::Increment(const rendero::AggregatorValue& value) {
   aggregator_manager_->AddValueToAggregator(name_, value);
+}
+
+rendero::AggregatorValue Aggregator::value() {
+  rendero::AggregatorValue temp_value;
+  aggregator_manager_->GetAggregatorValue(name_, &temp_value);
+  return temp_value;
+  
 }
 
 // Aggregator_aggregator

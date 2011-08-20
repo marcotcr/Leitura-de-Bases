@@ -1,0 +1,16 @@
+package rendero;
+
+message AggregatorValue {
+// AggregatorValues are actually defined using extensions
+  extensions 1 to max;
+}
+
+
+message AggregatorGroup {
+  repeated AggregatorValue aggregators = 1;
+};
+
+message AggregatorPartials {
+  required string name = 1;
+  required AggregatorGroup values = 2;
+}
