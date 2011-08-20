@@ -23,35 +23,48 @@
 
 // Implementation of aggregators.
 
-#include "aggregator.h"
+#include "./aggregator.h"
 
-AbstractAggregatorFunction::AbstractAggregatorFunction(std::string name,
-rendero::AggregatorValue initial_value): name_(name), initial_(initial_value) {
+AbstractAggregatorFunction::AbstractAggregatorFunction(const std::string& name,
+    const rendero::AggregatorValue& initial_value): name_(name),
+    initial_(initial_value) {
 }
 
-rendero::AggregatorValue AbstractAggregatorFunction::initial() {
+AbstractAggregatorFunction::~AbstractAggregatorFunction() {
+}
+
+const rendero::AggregatorValue& AbstractAggregatorFunction::initial() const {
   return initial_;
 }
 
 
 // AggregatorManager
 
-AggregatorManager::AggregatorManager(const AbstractAggregatorFunction*
-aggregator_function): aggregator_function_(aggregator_function) {
+AggregatorManager::AggregatorManager() {
 }
 
-void AggregatorManager::AddValueToAggregator(const std::string& name,
-const rendero::AggregatorValue& value) {
+void AggregatorManager::RegisterAggregationFunction(const std::string& name,
+    AbstractAggregatorFunction* function) {
+  reduce_functions_[name] = function;
+}
+
+void AggregatorManager::AddValueToAggregator(
+    const std::string& name, const rendero::AggregatorValue& value) {
+
+  if (reduce_functions_.count(name) == 0) {
+    // FAIL SOMEHOW
+    return;
+  }
   rendero::AggregatorValue temporary_aggregator;
-  aggregator_function_->reduce(aggregators_[name], value,
+  reduce_functions_[name]->reduce(aggregators_[name], value,
   &temporary_aggregator);
   aggregators_[name] = temporary_aggregator;
 }
 
 void AggregatorManager::OutputAndResetAllAggregators(
-rendero::AggregatorGroup* output_group) {
+    rendero::AggregatorGroup* output_group) {
   std::tr1::unordered_map<std::string, rendero::AggregatorValue>::iterator it;
-  rendero::AggregatorValue* temp_aggregator; 
+  rendero::AggregatorValue* temp_aggregator;
   for (it = aggregators_.begin(); it != aggregators_.end(); ++it) {
     temp_aggregator = output_group->add_aggregators();
     temp_aggregator->CopyFrom(it->second);
@@ -59,12 +72,13 @@ rendero::AggregatorGroup* output_group) {
   }
 }
 
-void AggregatorManager::GetAggregator(std::string name,
-Aggregator* aggregator) {
+void AggregatorManager::GetAggregator(const std::string& name,
+    Aggregator* aggregator) {
   aggregator->Fill(name, this);
 }
 
-void Aggregator::Fill(std::string name, AggregatorManager* aggregator_manager) {
+void Aggregator::Fill(const std::string& name,
+    AggregatorManager* aggregator_manager) {
   name_ = name;
   aggregator_manager_ = aggregator_manager;
 }
@@ -77,8 +91,8 @@ void Aggregator::Increment(const rendero::AggregatorValue& value) {
 AggregatorAggregator::AggregatorAggregator() {
 }
 
-void AggregatorAggregator::UpdateAggregators(const rendero::AggregatorPartials&
-aggregator_partials) {
+void AggregatorAggregator::UpdateAggregators(
+    const rendero::AggregatorPartials& aggregator_partials) {
   if (reduce_functions_.count(aggregator_partials.name()) == 0) {
     // FAIL SOMEHOW
     return;
@@ -93,10 +107,10 @@ aggregator_partials) {
   }
 }
 
-void AggregatorAggregator::OutputAndReset(rendero::AggregatorGroup*
-output_group) {
+void AggregatorAggregator::OutputAndReset(
+    rendero::AggregatorGroup* output_group) {
   std::tr1::unordered_map<std::string, rendero::AggregatorValue>::iterator it;
-  rendero::AggregatorValue* temp_aggregator; 
+  rendero::AggregatorValue* temp_aggregator;
   for (it = partials_.begin(); it != partials_.end(); ++it) {
     temp_aggregator = output_group->add_aggregators();
     temp_aggregator->CopyFrom(it->second);
@@ -105,6 +119,6 @@ output_group) {
 }
 
 void AggregatorAggregator::RegisterAggregationFunction(const std::string& name,
-AbstractAggregatorFunction* function) {
+    AbstractAggregatorFunction* function) {
   reduce_functions_[name] = function;
 }

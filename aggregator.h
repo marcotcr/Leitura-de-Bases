@@ -21,68 +21,79 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-// Implementation of counters.
+// Definition of counters.
 
+#ifndef AGGREGATOR_H_ //NOLINT
+#define AGGREGATOR_H_
 #include <string>
-#include <tr1/unordered_map>
-#include "aggregator.pb.h"
+#include <tr1/unordered_map> //NOLINT
+#include "./aggregator.pb.h"
 
 
 class AbstractAggregatorFunction {
  public:
-  AbstractAggregatorFunction(std::string name, rendero::AggregatorValue
-  initial_value);
+  AbstractAggregatorFunction(const std::string& name,
+      const rendero::AggregatorValue& initial_value);
 
-  rendero::AggregatorValue initial();
+  virtual ~AbstractAggregatorFunction();
+
+  const rendero::AggregatorValue& initial() const;
 
   // This must be defined by whoever extends the class. The idea is to provide a
-  // function that reduces two values.
+  // commutative and associative function that reduces two values.
   virtual void reduce(const rendero::AggregatorValue& partial,
   const rendero::AggregatorValue& value, rendero::AggregatorValue* result)
   const = 0;
 
- 
+
  private:
   std::string name_;
   rendero::AggregatorValue initial_;
 };
 
-//FIXME:
 class AggregatorManager;
 
 class Aggregator {
  public:
-  void Fill(std::string name, AggregatorManager* aggregator_manager);
+  void Fill(const std::string& name, AggregatorManager* aggregator_manager);
   void Increment(const rendero::AggregatorValue& value);
  private:
   Aggregator();
   std::string name_;
   AggregatorManager* aggregator_manager_;
-
 };
 
 class AggregatorManager {
  public:
-  AggregatorManager(const AbstractAggregatorFunction* aggregator_function);
+  AggregatorManager();
+
+  void RegisterAggregationFunction(const std::string& name,
+  AbstractAggregatorFunction* function);
 
   void AddValueToAggregator(const std::string& name,
   const rendero::AggregatorValue& value);
 
   void OutputAndResetAllAggregators(rendero::AggregatorGroup* output_group);
 
-  // Whoever calls this has ownership of the counter.
-  void GetAggregator(std::string name, Aggregator* aggregator);
+  // Whoever calls this has ownership of the aggregator instance.
+  void GetAggregator(const std::string& name, Aggregator* aggregator);
+
   private:
   const AbstractAggregatorFunction* aggregator_function_;
+
+  std::tr1::unordered_map<std::string, AbstractAggregatorFunction*>
+  reduce_functions_;
   std::tr1::unordered_map<std::string, rendero::AggregatorValue> aggregators_;
-  std::tr1::unordered_map<std::string, rendero::AggregatorValue> previous_values_;
+  std::tr1::unordered_map<std::string, rendero::AggregatorValue>
+      previous_values_;
 };
 
 class AggregatorAggregator {
  public:
   AggregatorAggregator();
 
-  void UpdateAggregators(const rendero::AggregatorPartials& aggregator_partials);
+  void UpdateAggregators(
+      const rendero::AggregatorPartials& aggregator_partials);
 
   void OutputAndReset(rendero::AggregatorGroup* output_group);
 
@@ -94,3 +105,5 @@ class AggregatorAggregator {
   std::tr1::unordered_map<std::string, AbstractAggregatorFunction*>
   reduce_functions_;
 };
+
+#endif  // AGGREGATOR_H_
