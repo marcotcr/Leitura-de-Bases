@@ -1,0 +1,7 @@
+import "aggregator.proto";
+
+package extensions;
+extend rendero.AggregatorValue {
+  required int32 value = 1;
+  optional string name = 2;
+}

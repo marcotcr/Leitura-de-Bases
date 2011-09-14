@@ -14,7 +14,7 @@ class TestAggregatorFunction : public AbstractAggregatorFunction {
  public:
   TestAggregatorFunction() :
   AbstractAggregatorFunction(std::string("integer_sum"), __initial) {
-    initial_.SetExtension(extensions::value, 5); 
+    initial_.SetExtension(extensions::value, 5);
   }
   virtual void reduce(const rendero::AggregatorValue& partial,
       const rendero::AggregatorValue& value, rendero::AggregatorValue* result)
