@@ -1,4 +1,7 @@
 // This still needs to be made pretty.
+#ifndef SLB_
+#define SLB_
+
 #include <zmq.hpp>
 #include <string>
 #include <iostream>
@@ -7,10 +10,13 @@
 #include "request.pb.h"
 #include "slb_message.pb.h"
 #include "z_utils.h"
+
+
 #define OPEN_REQUEST 1
 #define OPEN_RESPONSE 2
 #define READ_REQUEST 3
 #define READ_RESPONSE 4
+
 
 
 // This class defines the base reading service. At the time, there is one base
@@ -44,3 +50,4 @@ class SLB {
   int current_ID_;
 };
 
+#endif // SLB_
