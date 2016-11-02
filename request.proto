@@ -1,0 +1,21 @@
+package request;
+message Open{
+  required string file_name = 1;
+}
+message OpenResponse {
+  required bool operation_successful = 1;
+  // This is the ID attributed to the requester by the Base Reading Service.
+  optional int32 attributed_id = 2;
+  // This is only filled when operation_successful == false.
+  optional string error_message = 3;
+}
+message Read{
+  required int32 bytes = 1;
+  required int32 id = 2;
+}
+message ReadResponse {
+  required bool operation_successful = 1;
+  optional string response = 2;
+  optional string error_message = 3;
+}
+
